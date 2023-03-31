@@ -33,7 +33,6 @@ class GameOfLife:
             grid = [[random.randint(0, 1) for x in range(self.cols)] for y in range(self.rows)]
         else:
             grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
-        self.grid = grid
         return grid
 
     def get_neighbours(self, cell: Cell) -> Cells:
@@ -59,26 +58,21 @@ class GameOfLife:
         for i in range(3):
             for j in range(3):
                 if mask_main[i][j]:
-                    self.neighbours.append(self.grid[y_index - 1 + i][x_index - 1 + j])
+                    self.neighbours.append(self.curr_generation[y_index - 1 + i][x_index - 1 + j])
 
         return self.neighbours
 
     def get_next_generation(self) -> Grid:
-        for i in range(self.rows):
-            for j in range(self.cols):
-                count = 0
-                for k in self.get_neighbours((i, j)):
-                    if k:
-                        count += 1
-                if self.grid[i][j] == 0:
-                    if count == 3:
-                        self.grid[i][j] = 1
-                else:
-                    if count != 2 and count != 3:
-                        self.grid[i][j] = 0
-        return self.grid
-
-        pass
+        next_gen = self.create_grid(False)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                alive_nei = sum(self.get_neighbours((row, col)))
+                cell = self.curr_generation[row][col]
+                if cell == 1 and (alive_nei == 2 or alive_nei == 3):
+                    next_gen[row][col] = 1
+                if cell == 0 and alive_nei == 3:
+                    next_gen[row][col] = 1
+        return next_gen
 
     def step(self) -> None:
         """

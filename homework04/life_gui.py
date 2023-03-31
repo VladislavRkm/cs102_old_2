@@ -84,6 +84,7 @@ class GUI(UI):
         pygame.quit()
 
 
-game = GameOfLife((24, 32))
-ui = GUI(game, 10)
-ui.run()
+if __name__ == "__main__":
+    game = GameOfLife((24, 32))
+    ui = GUI(game, 10)
+    ui.run()

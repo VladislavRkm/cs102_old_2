@@ -41,31 +41,23 @@ class GameOfLife:
         self.screen.fill(pygame.Color("white"))
 
         # Создание списка клеток
-        # PUT YOUR CODE HERE
+        self.grid = self.create_grid(randomize=True)
 
         running = True
         while running:
             for event in pygame.event.get():
-                if event.type == QUIT:
+                if event.type == pygame.QUIT:
                     running = False
             self.draw_lines()
+
+            # Отрисовка списка клеток
             self.draw_grid()
+            # Выполнение одного шага игры (обновление состояния ячеек)
+            self.get_next_generation()
 
-            running = True
-            while running:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                self.draw_lines()
-
-                # Отрисовка списка клеток
-                self.draw_grid()
-                # Выполнение одного шага игры (обновление состояния ячеек)
-                self.get_next_generation()
-
-                pygame.display.flip()
-                clock.tick(self.speed)
-            pygame.quit()
+            pygame.display.flip()
+            clock.tick(self.speed)
+        pygame.quit()
 
     def create_grid(self, randomize: bool = False) -> Grid:
         """
@@ -83,14 +75,13 @@ class GameOfLife:
         Returns
         ----------
         out : Grid
-            Матрица клеток размером `cell_height` х `cell_width`.
+            Матрица клеток размером cell_height х cell_width.
         """
         if randomize:
             grid = [[random.randint(0, 1) for x in range(self.cell_width)] for y in range(self.cell_height)]
 
         else:
             grid = [[0 for x in range(self.cell_width)] for y in range(self.cell_height)]
-        self.grid = grid
         return grid
 
     def draw_grid(self) -> None:
@@ -122,11 +113,9 @@ class GameOfLife:
                         ),
                     )
 
-        self.draw_lines()
-
     def get_neighbours(self, cell: Cell) -> Cells:
         """
-        Вернуть список соседних клеток для клетки `cell`.
+        Вернуть список соседних клеток для клетки cell.
 
         Соседними считаются клетки по горизонтали, вертикали и диагоналям,
         то есть, во всех направлениях.
@@ -142,10 +131,9 @@ class GameOfLife:
         out : Cells
             Список соседних клеток.
         """
-        self.neighbours = []
+        neighbours = []
         y_index = cell[0]
         x_index = cell[1]
-
         mask_main = [[1, 1, 1], [1, 0, 1], [1, 1, 1]]
         add_mask = []
         if x_index == 0:
@@ -164,9 +152,9 @@ class GameOfLife:
         for i in range(3):
             for j in range(3):
                 if mask_main[i][j]:
-                    self.neighbours.append(self.grid[y_index - 1 + i][x_index - 1 + j])
+                    neighbours.append(self.grid[y_index - 1 + i][x_index - 1 + j])
 
-        return self.neighbours
+        return neighbours
 
     def get_next_generation(self) -> Grid:
         """
@@ -177,16 +165,13 @@ class GameOfLife:
         out : Grid
             Новое поколение клеток.
         """
-        for i in range(self.cell_height):
-            for j in range(self.cell_width):
-                count = 0
-                for k in self.get_neighbours((i, j)):
-                    if k:
-                        count += 1
-                if self.grid[i][j] == 0:
-                    if count == 3:
-                        self.grid[i][j] = 1
-                else:
-                    if count != 2 and count != 3:
-                        self.grid[i][j] = 0
-        return self.grid
+        self.next_gen = self.create_grid(False)
+        for row in range(self.cell_height):
+            for col in range(self.cell_width):
+                alive_nei = sum(self.get_neighbours((row, col)))
+                cell = self.grid[row][col]
+                if cell == 1 and (alive_nei == 2 or alive_nei == 3):
+                    self.next_gen[row][col] = 1
+                if cell == 0 and alive_nei == 3:
+                    self.next_gen[row][col] = 1
+        return self.next_gen

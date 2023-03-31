@@ -30,10 +30,7 @@ class GameOfLife:
 
     def create_grid(self, randomize: bool = False) -> Grid:
         if randomize:
-            grid = [
-                [random.randint(0, 1) for x in range(self.cols)]
-                for y in range(self.rows)
-            ]
+            grid = [[random.randint(0, 1) for x in range(self.cols)] for y in range(self.rows)]
         else:
             grid = [[0 for x in range(self.cols)] for y in range(self.rows)]
         self.grid = grid

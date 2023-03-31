@@ -23,9 +23,7 @@ class Console(UI):
         """Отобразить состояние клеток."""
         grid = self.game.curr_generation
         for i in range(len(grid)):
-            screen.addstr(
-                i + 1, 1, "".join(map(str, grid[i])).replace("1", "*").replace("0", " ")
-            )
+            screen.addstr(i + 1, 1, "".join(map(str, grid[i])).replace("1", "*").replace("0", " "))
 
     def run(self) -> None:
         screen = curses.initscr()

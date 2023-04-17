@@ -3,10 +3,10 @@ import re
 import typing as tp
 from datetime import datetime, timedelta
 
-import gspread # type: ignore
-import pandas as pd # type: ignore
-import requests # type: ignore
-import telebot # type: ignore
+import gspread  # type: ignore
+import pandas as pd  # type: ignore
+import requests  # type: ignore
+import telebot  # type: ignore
 
 bot = telebot.TeleBot("6218242520:AAHXuSFQ3FNJUAPbgM8SswT66oxzO9_XGGk")
 

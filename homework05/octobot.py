@@ -60,7 +60,7 @@ def convert_date(date: str = "01/01/00"):
 def connect_table(message):
     """Подключаемся к Google-таблице"""
     url = message.text
-    sheet_id = "1YygIB_D6ENZ8dqeOwaqdXjW4T5JSffjg2bKkJPWaiHA"  # Нужно извлечь id страницы из ссылки на Google-таблицу
+    sheet_id = message.text[39:83]  # Нужно извлечь id страницы из ссылки на Google-таблицу
     try:
         with open("tables.json") as json_file:
             tables = json.load(json_file)
@@ -71,6 +71,7 @@ def connect_table(message):
     with open("tables.json", "w") as json_file:
         json.dump(tables, json_file)
     bot.send_message(message.chat.id, "Таблица подключена!")
+    start(message)
 
 
 def access_current_sheet():
@@ -88,7 +89,8 @@ def access_current_sheet():
 def choose_action(message):
     """Обрабатываем действия верхнего уровня"""
     if message.text == "Подключить Google-таблицу":
-        connect_table(message)
+        sheet_id = bot.send_message(message.chat.id, "Введите ссылку на таблицу")
+        bot.register_next_step_handler(sheet_id, connect_table)
 
     elif message.text == "Редактировать предметы":
         subj_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -122,20 +124,20 @@ def choose_subject_action(message):
         bot.register_next_step_handler(subj, add_new_subject)
 
     elif message.text == "Обновить предмет":
-        subject_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        worksheet, url, df = access_current_sheet()
-
-        subject_list = worksheet.col_values(1)
-        subject_list.pop(0)
-
-        for subject in subject_list:
-            subject_markup.row(str(subject))
-        upd = bot.send_message(message.chat.id, "Выберите название обновляемо предмета", reply_markup=subject_markup)
-        bot.register_next_step_handler(upd, update_subject)
+        worksheet, url, c = access_current_sheet()
+        start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        for el in worksheet.col_values(1)[1:]:
+            start_markup.row(f"{el}")
+        chosen_subject = bot.send_message(message.chat.id, "Выберите предмет", reply_markup=start_markup)
+        bot.register_next_step_handler(chosen_subject, update_subject)
 
     elif message.text == "Удалить предмет":
-        deleted = bot.send_message(message.chat.id, "Введите название удаляемого предмета: ")
-        bot.register_next_step_handler(deleted, delete_subject)
+        worksheet, url, c = access_current_sheet()
+        start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        for el in worksheet.col_values(1)[1:]:
+            start_markup.row(f"{el}")
+        chosen_subject = bot.send_message(message.chat.id, "Выберите предмет", reply_markup=start_markup)
+        bot.register_next_step_handler(chosen_subject, delete_subject)
 
     elif message.text == "Удалить таблицу":
         choose_removal_option(message)
@@ -150,8 +152,12 @@ def choose_subject_action(message):
 def choose_deadline_action(message):
     """Выбираем действие в разделе редактировать дедлайн"""
     if message.text == "Добавить новый дедлайн" or message.text == "Изменить дедлайн":
-        subj = bot.send_message(message.chat.id, "Введите название предмета: ")
-        bot.register_next_step_handler(subj, choose_subject)
+        worksheet, url, c = access_current_sheet()
+        start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        for el in worksheet.col_values(1)[1:]:
+            start_markup.row(f"{el}")
+        chosen_subject = bot.send_message(message.chat.id, "Выберите предмет", reply_markup=start_markup)
+        bot.register_next_step_handler(chosen_subject, choose_subject)
 
     elif message.text == "Назад":
         start(message)
@@ -229,9 +235,13 @@ def add_new_subject_url(message, subject):
         link = "" if url == "нет" else url
         worksheet, url, df = access_current_sheet()
         worksheet.append_row([subject, link])
-
         bot.send_message(message.chat.id, "Данные успешно внесены")
         start(message)
+
+    elif message.text == "-" or message.text == "нет":
+        worksheet, url, df = access_current_sheet()
+        worksheet.append_row([subject, message.text])
+        bot.send_message(message.chat.id, "Таблица с данными по дисциплине отсутствует. Не забудьте внести их позже.")
 
     else:
         bot.send_message(message.chat.id, "Ссылка некорректна")
@@ -313,4 +323,4 @@ def start(message):
     bot.register_next_step_handler(info, choose_action)
 
 
-# bot.infinity_polling()
+bot.infinity_polling()

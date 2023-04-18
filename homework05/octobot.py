@@ -220,7 +220,7 @@ def add_new_subject(message):
     subject = message.text
 
     if not check_subject(subject):
-        link = bot.send_message(message.chat.id, "Введите ссылку на таблицу: ")
+        link = bot.send_message(message.chat.id, 'Введите ссылку на таблицу: (если её нет, введите "-" или "нет")')
         bot.register_next_step_handler(link, add_new_subject_url, subject)
     else:
         bot.send_message(message.chat.id, "Данный предмет уже есть в таблице")
@@ -312,9 +312,7 @@ def start(message):
         json_file = open("tables.json")
     except FileNotFoundError:
         start_markup.row("Подключить Google-таблицу")
-        start_markup.row("Посмотреть дедлайны на этой неделе")
-        start_markup.row("Редактировать дедлайн")
-        start_markup.row("Редактировать предметы")
+
     else:
         start_markup.row("Посмотреть дедлайны на этой неделе")
         start_markup.row("Редактировать дедлайн")

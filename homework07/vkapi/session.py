@@ -1,8 +1,8 @@
 import typing as tp
 
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+import requests  # type: ignore
+from requests.adapters import HTTPAdapter  # type: ignore
+from requests.packages.urllib3.util.retry import Retry  # type: ignore
 
 
 class Session:
@@ -22,10 +22,31 @@ class Session:
         max_retries: int = 3,
         backoff_factor: float = 0.3,
     ) -> None:
-        pass
+        self.base_url = base_url
+        self.timeout = timeout
+        self.session = requests.Session()
+        possible_errors = []
+        for i in range(400, 600):
+            possible_errors.append(i)
+        retry_process = Retry(
+            allowed_methods=["POST", "GET"],  # задает список разрешенных HTTP-методов,
+            total=max_retries,  # задает максимальное количество повторных попыток
+            backoff_factor=backoff_factor,  # задает коэффициент задержки между повторными попытками
+            status_forcelist=possible_errors,
+            # задает список статусов HTTP-ответов, которые приведут к повторному
+            # выполнению запроса.
+        )
+        http_adapter = HTTPAdapter(max_retries=retry_process)
+        self.session.mount("https://", http_adapter)
 
     def get(self, url: str, *args: tp.Any, **kwargs: tp.Any) -> requests.Response:
-        pass
+        self.timeout = kwargs.get("timeout", self.timeout)
+        full_url = self.base_url + "/" + url
+        response = self.session.get(full_url, timeout=self.timeout, *args, **kwargs)
+        return response
 
     def post(self, url: str, *args: tp.Any, **kwargs: tp.Any) -> requests.Response:
-        pass
+        self.timeout = kwargs.get("timeout", self.timeout)
+        full_url = self.base_url + "/" + url
+        response = self.session.post(full_url, timeout=self.timeout, *args, **kwargs)
+        return response
